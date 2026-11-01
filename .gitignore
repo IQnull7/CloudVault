@@ -1,0 +1,29 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Build files
+dist/
+build/
+
+# OS / editor
+.DS_Store
+Thumbs.db
