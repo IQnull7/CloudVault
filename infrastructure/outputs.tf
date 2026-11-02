@@ -17,3 +17,15 @@ output "shares_table_name" {
 output "audit_logs_table_name" {
   value = aws_dynamodb_table.audit_logs.name
 }
+
+output "user_pool_id" {
+  value = aws_cognito_user_pool.main.id
+}
+
+output "user_pool_client_id" {
+  value = aws_cognito_user_pool_client.web.id
+}
+
+output "jwt_issuer" {
+  value = "https://${aws_cognito_user_pool.main.endpoint}"
+}
