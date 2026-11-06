@@ -29,3 +29,6 @@ output "user_pool_client_id" {
 output "jwt_issuer" {
   value = "https://${aws_cognito_user_pool.main.endpoint}"
 }
+output "api_endpoint" {
+  value = aws_apigatewayv2_api.main.api_endpoint
+}
