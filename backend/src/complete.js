@@ -1,4 +1,3 @@
-const { randomUUID } = require("crypto");
 const { S3Client, HeadObjectCommand } = require("@aws-sdk/client-s3");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
@@ -7,6 +6,7 @@ const {
   PutCommand,
 } = require("@aws-sdk/lib-dynamodb");
 const { getCaller, json } = require("./auth");
+const { writeAudit } = require("./audit");
 
 const s3 = new S3Client({});
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -16,25 +16,6 @@ const FILES_TABLE = process.env.FILES_TABLE;
 const AUDIT_TABLE = process.env.AUDIT_TABLE;
 const MAX_BYTES = 10 * 1024 * 1024;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-
-async function writeAudit(fileId, caller, eventType, outcome) {
-  const ts = Date.now();
-  await ddb.send(
-    new PutCommand({
-      TableName: AUDIT_TABLE,
-      Item: {
-        fileId,
-        sk: `${String(ts).padStart(13, "0")}#${randomUUID()}`,
-        actorEmail: caller.email,
-        eventType,
-        outcome,
-        sourceIp: caller.sourceIp,
-        ts,
-      },
-      ConditionExpression: "attribute_not_exists(fileId) AND attribute_not_exists(sk)",
-    })
-  );
-}
 
 exports.handler = async (event) => {
   const caller = getCaller(event);
@@ -122,7 +103,7 @@ exports.handler = async (event) => {
     throw err;
   }
 
-  await writeAudit(fileId, caller, "upload", "success");
+  await writeAudit(ddb, AUDIT_TABLE, fileId, caller, "upload", "success");
 
   return json(200, { fileId, fileName: item.fileName, sizeBytes: realSize, contentType: realType });
 };

@@ -32,3 +32,6 @@ Thumbs.db
 
 backend/build/
 *.zip
+
+# Agent temp files (credentials, test data, secrets)
+.tmp/
