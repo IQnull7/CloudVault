@@ -1,0 +1,84 @@
+name: CloudVault CI/CD
+
+on:
+  push:
+    branches: [main, agent-work]
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate:
+    name: Lint, Syntax & Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Backend Lambda Syntax Verification
+        run: |
+          for f in backend/src/*.js; do
+            echo "Checking syntax: $f"
+            node -c "$f"
+          done
+
+      - name: Frontend Build Verification
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.1
+
+      - name: Terraform Format Check
+        run: |
+          terraform -chdir=infrastructure fmt -check -recursive
+
+      - name: Terraform Validate
+        run: |
+          terraform -chdir=infrastructure init -backend=false
+          terraform -chdir=infrastructure validate
+
+  deploy:
+    name: Terraform Plan & Deploy
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && vars.AWS_ROLE_TO_ASSUME != ''
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: ap-southeast-2
+          audience: sts.amazonaws.com
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.1
+
+      - name: Terraform Init
+        run: terraform -chdir=infrastructure init
+
+      - name: Terraform Apply
+        run: terraform -chdir=infrastructure apply -auto-approve

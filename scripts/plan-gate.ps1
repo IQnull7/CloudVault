@@ -51,6 +51,13 @@ try {
         if ($actions -contains "update") {
             foreach ($p in $protected) {
                 if ($addr -eq $p) {
+                    # Sanctioned exception: final removal of ALLOW_USER_PASSWORD_AUTH from cognito client
+                    if ($addr -eq "aws_cognito_user_pool_client.web" -and
+                        $rc.change.before.explicit_auth_flows -contains "ALLOW_USER_PASSWORD_AUTH" -and
+                        $rc.change.after.explicit_auth_flows -notcontains "ALLOW_USER_PASSWORD_AUTH") {
+                        Write-Host "==> Sanctioned Cognito client update detected: removing ALLOW_USER_PASSWORD_AUTH" -ForegroundColor Yellow
+                        continue
+                    }
                     $failures += "BLOCKED [$addr]: in-place update of protected resource not allowed (actions = $($actions -join ', '))"
                 }
             }
