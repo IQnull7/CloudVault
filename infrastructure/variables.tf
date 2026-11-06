@@ -9,3 +9,10 @@ variable "ses_sender_email" {
   type        = string
   default     = "abhinavrag777@gmail.com"
 }
+
+variable "enable_cloudfront" {
+  description = "Enable CloudFront distribution. Set to false if AWS Free-plan account verification is pending for CloudFront."
+  type        = bool
+  default     = false
+}
+

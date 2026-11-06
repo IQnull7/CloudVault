@@ -4,7 +4,35 @@ These items need a human because they require browser clicks, real email verific
 
 ---
 
-## 1. SES Sender Verification (Required for share email notifications)
+## 1. CloudFront Account Verification (AWS Free Plan restriction)
+
+**Status:** Infrastructure prepared; CloudFront distribution gated behind `enable_cloudfront = false`.
+The dedicated frontend S3 bucket `cloudvault-frontend-373468206201-ap-southeast-2` is deployed (encrypted, private, public access blocked, OAC configured) and populated with the built React SPA.
+
+**Why action is needed:**
+AWS restricts CloudFront distribution creation on new Free Tier accounts until account verification is requested:
+`Error: Your account must be verified before you can add new CloudFront resources. To verify your account, please contact AWS Support (https://console.aws.amazon.com/support/home#/) and include this error message.`
+
+**Steps:**
+1. Open the AWS Support Center: https://console.aws.amazon.com/support/home#/
+2. Create a case under **Account and billing** or **Service limit increase** -> CloudFront.
+3. Message: "Please verify my account to allow creation of CloudFront distributions."
+4. Once AWS Support approves (usually within 12-24 hours), enable CloudFront in Terraform:
+   - Edit `infrastructure/variables.tf` (or add to `infrastructure/terraform.tfvars`):
+     ```hcl
+     enable_cloudfront = true
+     ```
+   - Run:
+     ```powershell
+     cd infrastructure
+     terraform plan -out=tfplan
+     powershell -ExecutionPolicy Bypass -File ..\scripts\plan-gate.ps1
+     terraform apply tfplan
+     ```
+
+---
+
+## 2. SES Sender Verification (Required for share email notifications)
 
 **Status:** Infrastructure created but emails not verified in SES sandbox.
 

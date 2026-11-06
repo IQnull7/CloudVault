@@ -32,3 +32,15 @@ output "jwt_issuer" {
 output "api_endpoint" {
   value = aws_apigatewayv2_api.main.api_endpoint
 }
+
+output "frontend_bucket_name" {
+  value = aws_s3_bucket.frontend.bucket
+}
+
+output "cloudfront_distribution_id" {
+  value = var.enable_cloudfront ? aws_cloudfront_distribution.frontend[0].id : "disabled_pending_account_verification"
+}
+
+output "cloudfront_domain_name" {
+  value = var.enable_cloudfront ? aws_cloudfront_distribution.frontend[0].domain_name : "disabled_pending_account_verification"
+}

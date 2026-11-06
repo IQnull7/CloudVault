@@ -5,7 +5,7 @@ resource "aws_s3_bucket_cors_configuration" "cloudvault" {
   bucket = aws_s3_bucket.cloudvault.id
 
   cors_rule {
-    allowed_origins = var.cors_allowed_origins
+    allowed_origins = local.all_allowed_origins
     allowed_methods = ["PUT", "GET", "HEAD"]
     allowed_headers = ["*"]
     expose_headers  = ["ETag"]

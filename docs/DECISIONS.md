@@ -51,3 +51,11 @@ Recorded by the autonomous agent. Decisions are made to resolve ambiguity; none 
 **Decision:** `data.archive_file.backend` zips the entire `backend/` directory (src + package.json + node_modules). All Lambda functions share one zip and reference their own handler path.  
 **Reason:** This keeps Terraform simple (one `source_code_hash`, all Lambdas update together) and avoids per-function zips. The zip is excluded from git via `.gitignore`.
 
+---
+
+## D-008: CloudFront gated on account verification flag
+
+**Decision:** `aws_cloudfront_distribution.frontend` and its S3 bucket policy are gated behind `var.enable_cloudfront` (default `false`).  
+**Reason:** AWS new Free Tier accounts reject CloudFront creation with `403 AccessDenied: Your account must be verified before you can add new CloudFront resources. To verify your account, please contact AWS Support`. Per HANDOVER.md stop conditions: "An AWS service refusal that looks like a Free-plan restriction and has no serverless alternative: note it in docs/DECISIONS.md and apply the cut order. Anything needing a human... add to docs/HUMAN-TODO.md and continue; do not wait." The dedicated S3 frontend bucket, public access block, encryption, and OAC are fully deployed, and the built React bundle is synced to S3. Once AWS support verifies the account, setting `enable_cloudfront = true` immediately deploys the distribution.
+
+
